@@ -15,27 +15,27 @@ class TestCVCueClientInitialization:
     def test_init_with_parameters(self, temp_session_file):
         """Test initialization with explicit parameters."""
         client = CVCueClient(
-            key_id="test-key",
-            key_value="test-value",
-            client_id="test-client",
-            base_url="https://test.api.com",
+            key_id="param-test-key",
+            key_value="param-test-value",
+            client_id="param-test-client",
+            base_url="https://param-test.api.com",
             session_file=temp_session_file
         )
 
-        assert client.key_id == "test-key"
-        assert client.key_value == "test-value"
-        assert client.client_id == "test-client"
-        assert client.base_url == "https://test.api.com"
+        assert client.key_id == "param-test-key"
+        assert client.key_value == "param-test-value"
+        assert client.client_id == "param-test-client"
+        assert client.base_url == "https://param-test.api.com"
         assert client.session_file == temp_session_file
 
     def test_init_with_env_vars(self, mock_env_vars, temp_session_file):
         """Test initialization with environment variables."""
         client = CVCueClient(session_file=temp_session_file)
 
-        assert client.key_id == "test-key-id"
-        assert client.key_value == "test-key-value"
-        assert client.client_id == "test-client"
-        assert client.base_url == "https://test.api.com/api"
+        assert client.key_id == "env-test-key-id"
+        assert client.key_value == "env-test-key-value"
+        assert client.client_id == "env-test-client"
+        assert client.base_url == "https://env-test.api.com/api"
 
     def test_init_missing_credentials(self, temp_session_file, monkeypatch):
         """Test that missing credentials raises ValueError."""
@@ -189,9 +189,9 @@ class TestCVCueClientLogin:
 
         login_data = call_args[1]["json"]
         assert login_data["type"] == "apiKeyCredentials"
-        assert login_data["keyId"] == "test-key-id"
-        assert login_data["keyValue"] == "test-key-value"
-        assert login_data["clientIdentifier"] == "test-client"
+        assert login_data["keyId"] == "env-test-key-id"
+        assert login_data["keyValue"] == "env-test-key-value"
+        assert login_data["clientIdentifier"] == "env-test-client"
         assert login_data["timeout"] == 300
 
         # Verify session was saved

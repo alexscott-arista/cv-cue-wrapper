@@ -32,10 +32,10 @@ def temp_session_file():
 @pytest.fixture
 def mock_env_vars(monkeypatch):
     """Set mock environment variables for CVCueClient."""
-    monkeypatch.setenv("CV_CUE_KEY_ID", "test-key-id")
-    monkeypatch.setenv("CV_CUE_KEY_VALUE", "test-key-value")
-    monkeypatch.setenv("CV_CUE_CLIENT_ID", "test-client")
-    monkeypatch.setenv("CV_CUE_BASE_URL", "https://test.api.com/api")
+    monkeypatch.setenv("CV_CUE_KEY_ID", "env-test-key-id")
+    monkeypatch.setenv("CV_CUE_KEY_VALUE", "env-test-key-value")
+    monkeypatch.setenv("CV_CUE_CLIENT_ID", "env-test-client")
+    monkeypatch.setenv("CV_CUE_BASE_URL", "https://env-test.api.com/api")
 
 
 @pytest.fixture
