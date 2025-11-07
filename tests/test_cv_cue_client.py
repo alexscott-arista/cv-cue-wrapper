@@ -12,8 +12,19 @@ from cv_cue_wrapper.cv_cue_client import CVCueClient
 class TestCVCueClientInitialization:
     """Test CVCueClient initialization."""
 
-    def test_init_with_parameters(self, temp_session_file):
-        """Test initialization with explicit parameters."""
+    def test_init_with_parameters(self, monkeypatch, temp_session_file):
+        """Test initialization with explicit parameters (should override env vars)."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
+        # Set environment variables to different values
+        monkeypatch.setenv("CV_CUE_KEY_ID", "env-test-key-id")
+        monkeypatch.setenv("CV_CUE_KEY_VALUE", "env-test-key-value")
+        monkeypatch.setenv("CV_CUE_CLIENT_ID", "env-test-client")
+        monkeypatch.setenv("CV_CUE_BASE_URL", "https://env-test.api.com/api")
+
+        # Pass parameters - these should take precedence
         client = CVCueClient(
             key_id="param-test-key",
             key_value="param-test-value",
@@ -22,6 +33,7 @@ class TestCVCueClientInitialization:
             session_file=temp_session_file
         )
 
+        # Verify params were used, not env vars
         assert client.key_id == "param-test-key"
         assert client.key_value == "param-test-value"
         assert client.client_id == "param-test-client"
@@ -29,9 +41,15 @@ class TestCVCueClientInitialization:
         assert client.session_file == temp_session_file
 
     def test_init_with_env_vars(self, mock_env_vars, temp_session_file):
-        """Test initialization with environment variables."""
+        """Test initialization with environment variables (no params passed)."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
+        # Don't pass any parameters - should load from env vars
         client = CVCueClient(session_file=temp_session_file)
 
+        # Verify env vars were used
         assert client.key_id == "env-test-key-id"
         assert client.key_value == "env-test-key-value"
         assert client.client_id == "env-test-client"
@@ -39,23 +57,34 @@ class TestCVCueClientInitialization:
 
     def test_init_missing_credentials(self, temp_session_file, monkeypatch):
         """Test that missing credentials raises ValueError."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         # Clear any environment variables that might interfere
         monkeypatch.delenv("CV_CUE_KEY_ID", raising=False)
         monkeypatch.delenv("CV_CUE_KEY_VALUE", raising=False)
         monkeypatch.delenv("CV_CUE_CLIENT_ID", raising=False)
         monkeypatch.delenv("CV_CUE_BASE_URL", raising=False)
 
+        # Test missing key_id
         with pytest.raises(ValueError, match="CV-CUE API key ID"):
             CVCueClient(key_value="value", client_id="client", session_file=temp_session_file)
 
+        # Test missing key_value
         with pytest.raises(ValueError, match="CV-CUE API key value"):
             CVCueClient(key_id="id", client_id="client", session_file=temp_session_file)
 
+        # Test missing client_id
         with pytest.raises(ValueError, match="CV-CUE client ID"):
             CVCueClient(key_id="id", key_value="value", session_file=temp_session_file)
 
-    def test_base_url_trailing_slash_removed(self, mock_env_vars, temp_session_file):
+    def test_base_url_trailing_slash_removed(self, temp_session_file):
         """Test that trailing slash is removed from base_url."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(
             key_id="test", key_value="test", client_id="test",
             base_url="https://test.api.com/",
@@ -66,6 +95,10 @@ class TestCVCueClientInitialization:
 
     def test_resource_cache_initialized(self, mock_env_vars, temp_session_file):
         """Test that resource cache is initialized."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
         assert hasattr(client, '_resource_cache')
         assert isinstance(client._resource_cache, dict)
@@ -87,6 +120,10 @@ class TestCVCueClientSessionManagement:
 
     def test_save_and_load_session(self, mock_env_vars, temp_session_file):
         """Test saving and loading session cookies."""
+        # Ensure temp session file doesn't exist initially
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
 
         # Add a cookie to the session
@@ -102,6 +139,10 @@ class TestCVCueClientSessionManagement:
 
     def test_clear_session(self, mock_env_vars, temp_session_file):
         """Test clearing session file."""
+        # Ensure temp session file doesn't exist initially
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
 
         # Create and save a session
@@ -134,12 +175,20 @@ class TestCVCueClientSessionValidation:
 
     def test_is_session_active_no_cookie(self, mock_env_vars, temp_session_file):
         """Test is_session_active when JSESSIONID cookie is missing."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
         assert not client.is_session_active()
 
     @patch('requests.Session.get')
     def test_is_session_active_valid_session(self, mock_get, mock_env_vars, temp_session_file):
         """Test is_session_active with valid session."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
         client.session.cookies.set('JSESSIONID', 'test-session-id')
 
@@ -153,6 +202,10 @@ class TestCVCueClientSessionValidation:
     @patch('requests.Session.get')
     def test_is_session_active_invalid_session(self, mock_get, mock_env_vars, temp_session_file):
         """Test is_session_active with invalid session."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         client = CVCueClient(session_file=temp_session_file)
         client.session.cookies.set('JSESSIONID', 'invalid-session-id')
 
@@ -170,6 +223,10 @@ class TestCVCueClientLogin:
     @patch('cv_cue_wrapper.cv_cue_client.CVCueClient.request')
     def test_login_success(self, mock_request, mock_env_vars, temp_session_file):
         """Test successful login."""
+        # Ensure temp session file doesn't exist
+        if temp_session_file.exists():
+            temp_session_file.unlink()
+
         mock_request.return_value = {"status": "success", "sessionId": "12345"}
 
         client = CVCueClient(session_file=temp_session_file)
